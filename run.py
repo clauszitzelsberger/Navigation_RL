@@ -7,6 +7,7 @@ from collections import deque
 #import pdb
 
 from agent import Agent
+from model import QNetwork
 
 def initialize_env(unity_file):
     # Initialize the environment
@@ -30,7 +31,7 @@ def initialize_env(unity_file):
 
 def dqn(env, brain_name, n_episodes=2000,
         max_steps=1000, epsilon_start=1.0,
-        epsilon_end=.01, epsilon_decay=.99):
+        epsilon_end=.01, epsilon_decay=.995):
     """Deep Q-Learning.
 
     Params
@@ -72,13 +73,36 @@ def dqn(env, brain_name, n_episodes=2000,
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(e, np.mean(scores_window)))
         if np.mean(scores_window)>=13.0:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(e-100, np.mean(scores_window)))
-            torch.save(agent.qnet_local.state_dict(), 'checkpoint.pth')
+            checkpoint = {'state_size': state_size,
+                          'action_size': action_size,
+                          'hidden_layers': [each.out_features for each in agent.qnet_local.hidden_layers],
+                          'state_dict': agent.qnet_local.state_dict()}
+            torch.save(checkpoint, 'checkpoint.pth')
             break
     env.close()
     return scores
 
-def apply():
-    pass
+def apply(env, brain_name, filepath):
+    model = load_checkpoints(filepath)
+    env_info = env.reset(train_mode=False)[brain_name]
+    state = env_info.vector_observations[0]
+    score = 0
+    while True:
+        state = torch.from_numpy(state).float().unsqueeze(0).to('cpu')
+        model.eval()
+        with torch.no_grad():
+            action_values = model(state)
+        action = np.argmax(action_values.cpu().data.numpy())
+        env_info = env.step(action)[brain_name]
+        next_state = env_info.vector_observations[0]
+        reward = env_info.rewards[0]
+        done = env_info.local_done[0]
+        score += reward
+        state = next_state
+        if done:
+            break
+    print('Score: {}'.format(score))
+    env.close()
 
 def plot_scores(scores):
     fig = plt.figure()
@@ -90,11 +114,20 @@ def plot_scores(scores):
     plt.xlabel('Episode #')
     plt.show()
 
+def load_checkpoints(filepath):
+    checkpoint = torch.load(filepath)
+    model = QNetwork(checkpoint['state_size'],
+                     checkpoint['action_size'],
+                     checkpoint['hidden_layers'])
+    model.load_state_dict(checkpoint['state_dict'])
+    return model
+    
 
 if __name__ == '__main__':
     env, brain_name, state_size, action_size = \
         initialize_env('Banana_Linux/Banana.x86')
     # Initialize agent
-    agent = Agent(state_size, action_size)
-    scores = dqn(env, brain_name, n_episodes=5000)
+    agent = Agent(state_size, action_size, [256, 128, 64])
+    scores = dqn(env, brain_name, n_episodes=2000)
     plot_scores(scores)
+    apply(env, brain_name, 'checkpoint.pth')
