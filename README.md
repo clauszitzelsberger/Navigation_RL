@@ -27,7 +27,7 @@ pip install pip install -r requirements.txt
 
 3. Download the Unity Environment
 Download the environment that mathces your operation system, then place the file in the `Navigation_RL/` folder and unizip the file.
-	- [__Linux__] (https://s3-us-west-1.amazonaws.com)
+	- __Linux__: [click here] (https://s3-us-west-1.amazonaws.com)
 	- __Mac OSX__
 	- __Windows (32-bit)__
 	- __Windows (64-bit)__
