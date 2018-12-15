@@ -12,8 +12,8 @@ BUFFER_SIZE = int(1e5)      # replay buffer size
 BATCH_SIZE = 64             # minibatch size
 GAMMA = .99                 # discount factor
 TAU = 1e-3                  # (soft) update of target parameters
-LR = 5e-5                   # learning rate 5e-5
-UPDATE_EVERY = 4            # update local network after every x steps
+LR = 5e-5                   # learning rate
+UPDATE_LOCAL = 4            # update local network after every x steps
 UPDATE_TARGET = 4           # update target network with local network params
 
 device = 'cpu'
@@ -21,7 +21,8 @@ device = 'cpu'
 class Agent():
 
     def __init__(self, state_size,
-                 action_size, seed=1):
+                 action_size, hidden_layers,
+                 seed=1):
         """Initialize Agent object
 
         Params
@@ -36,8 +37,10 @@ class Agent():
         self.seed = random.seed(seed)
 
         # Q Network
-        self.qnet_local = QNetwork(state_size, action_size, seed).to(device)
-        self.qnet_target = QNetwork(state_size, action_size, seed).to(device)
+        self.qnet_local = \
+            QNetwork(state_size, action_size, hidden_layers, seed).to(device)
+        self.qnet_target = \
+            QNetwork(state_size, action_size, hidden_layers, seed).to(device)
         self.optimizer = optim.Adam(self.qnet_local.parameters(), lr=LR)
 
         # Replay buffer
@@ -51,9 +54,9 @@ class Agent():
         # Save experience in replay buffer
         self.memory.add(state, action, reward, next_state, done)
 
-        # Learn every UPDATE_EVERY time steps
+        # Learn every UPDATE LOCAL time steps
         self.t_step += 1
-        if self.t_step % UPDATE_EVERY == 0:
+        if self.t_step % UPDATE_LOCAL == 0:
             # If enough samples are available in memory, get random subset and lean
             if len(self.memory) > BATCH_SIZE:
                 sample = self.memory.sample()
