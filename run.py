@@ -79,7 +79,6 @@ def dqn(env, brain_name, n_episodes=2000,
                           'state_dict': agent.qnet_local.state_dict()}
             torch.save(checkpoint, 'checkpoint.pth')
             break
-    env.close()
     return scores
 
 def apply(env, brain_name, filepath):
@@ -102,14 +101,12 @@ def apply(env, brain_name, filepath):
         if done:
             break
     print('Score: {}'.format(score))
-    env.close()
 
 def plot_scores(scores):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     scores_smoothed = gaussian_filter1d(scores, sigma=10)
     plt.plot(np.arange(len(scores)), scores_smoothed)
-    #plt.plot(np.arange(len(scores)), scores)
     plt.ylabel('smoothed Score')
     plt.xlabel('Episode #')
     plt.show()
@@ -121,7 +118,7 @@ def load_checkpoints(filepath):
                      checkpoint['hidden_layers'])
     model.load_state_dict(checkpoint['state_dict'])
     return model
-    
+
 
 if __name__ == '__main__':
     env, brain_name, state_size, action_size = \
@@ -131,3 +128,4 @@ if __name__ == '__main__':
     scores = dqn(env, brain_name, n_episodes=2000)
     plot_scores(scores)
     apply(env, brain_name, 'checkpoint.pth')
+    env.close()
