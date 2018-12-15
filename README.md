@@ -25,10 +25,17 @@ cd Navigation_RL
 pip install pip install -r requirements.txt
 ```
 
-3. Create an [IPython kernel](http://ipython.readthedocs.io/en/stable/install/kernel_install.html) for the `name` environment.  
+3. Download the Unity Environment
+Download the environment that mathces your operation system, then place the file in the `Navigation_RL/` folder and unizip the file.
+	- [__Linux__] (https://s3-us-west-1.amazonaws.com)
+	- __Mac OSX__
+	- __Windows (32-bit)__
+	- __Windows (64-bit)__
+
+4. Create an [IPython kernel](http://ipython.readthedocs.io/en/stable/install/kernel_install.html) for the `name` environment.  
 ```bash
 python -m ipykernel install --user --name name --display-name "name"
 ```
 
-4. Before running code in a notebook, change the kernel to match the `name` environment by using the drop-down `Kernel` menu. 
+5. Before running code in a notebook, change the kernel to match the `name` environment by using the drop-down `Kernel` menu. 
   
