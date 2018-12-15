@@ -30,7 +30,5 @@ pip install pip install -r requirements.txt
 python -m ipykernel install --user --name name --display-name "name"
 ```
 
-4. Before running code in a notebook, change the kernel to match the `drlnd` environment by using the drop-down `Kernel` menu. 
-
-![Kernel][image2]
+4. Before running code in a notebook, change the kernel to match the `name` environment by using the drop-down `Kernel` menu. 
   
