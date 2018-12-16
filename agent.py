@@ -15,7 +15,8 @@ TAU = 1e-3                  # (soft) update of target parameters
 LR = 5e-5                   # learning rate
 UPDATE_LOCAL = 4            # update local network after every x steps
 UPDATE_TARGET = 4           # update target network with local network params
-
+DDQN = True                 # Double Deep Q-Learning
+                            
 device = 'cpu'
 
 class Agent():
@@ -95,10 +96,22 @@ class Agent():
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones = sample
+        
+        if not DDQN:
 
-        # Get max predicted Q values (for next states) from target model
-        Q_targets_next = \
-            self.qnet_target(next_states).detach().max(1)[0].unsqueeze(1)
+            # Get max predicted Q values (for next states) from target model
+            Q_targets_next = \
+                self.qnet_target(next_states).detach().max(1)[0].unsqueeze(1)
+            
+        else:
+            # Get actions (for next states) with max Q values from local net
+            next_actions = \
+                self.qnet_local(next_states).detach().max(1)[1].unsqueeze(1)
+                
+            # Get predicted Q values from target model
+            Q_targets_next = \
+                self.qnet_target(next_states).gather(1, next_actions)
+        
         # Compute Q targets for current states
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
 
