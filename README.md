@@ -54,7 +54,7 @@ python -m ipykernel install --user --name name --display-name "name"
   
 ## Setup of repository
 
-Apart from the `Readme-md` file this repository consists of the following files:
+Apart from the `Readme.md` file this repository consists of the following files:
 
 1. `agent.py`: Agent and ReplayBuffer class with all required functions
 2. `model.py`: QNetwork class
