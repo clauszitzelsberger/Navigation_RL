@@ -29,15 +29,15 @@ def initialize_env(unity_file):
 
 
 
-def dqn(env, brain_name, n_episodes=2000,
-        max_steps=1000, epsilon_start=1.0,
-        epsilon_end=.01, epsilon_decay=.995):
+def dqn(env, brain_name, 
+        agent, n_episodes=2000,
+        epsilon_start=1.0, epsilon_end=.1, 
+        epsilon_decay=.995):
     """Deep Q-Learning.
 
     Params
     ======
         n_episodes (int): maximum number of training episodes
-        max_stepsx_t (int): maximum number of timesteps per episode
         epsilon_start (float): starting value of epsilon, for epsilon-greedy action selection
         epsilon_end (float): minimum value of epsilon
         epsilon_decay (float): multiplicative factor (per episode) for decreasing epsilon
@@ -102,13 +102,15 @@ def apply(env, brain_name, filepath):
             break
     print('Score: {}'.format(score))
 
-def plot_scores(scores):
+def plot_scores(scores_dict):
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    scores_smoothed = gaussian_filter1d(scores, sigma=10)
-    plt.plot(np.arange(len(scores)), scores_smoothed)
+    for key, scores in scores_dict.items():
+        scores_smoothed = gaussian_filter1d(scores, sigma=5)
+        plt.plot(np.arange(len(scores)), scores_smoothed, label=key)
     plt.ylabel('smoothed Score')
     plt.xlabel('Episode #')
+    plt.legend()
     plt.show()
 
 def load_checkpoints(filepath):
@@ -123,9 +125,21 @@ def load_checkpoints(filepath):
 if __name__ == '__main__':
     env, brain_name, state_size, action_size = \
         initialize_env('Banana_Linux/Banana.x86')
-    # Initialize agent
-    agent = Agent(state_size, action_size, [256, 128, 64])
-    scores = dqn(env, brain_name, n_episodes=2000)
-    plot_scores(scores)
+        
+    # Initialize agent w/o DDQN
+    agent1 = Agent(state_size, action_size, [256, 128, 64], ddqn=False)
+    # Train agent
+    scores_no_ddqn = dqn(env, brain_name, agent1, n_episodes=2000)
+    
+    # Initialize agent with DDQN
+    agent2 = Agent(state_size, action_size, [256, 128, 64], ddqn=True)
+    # Train agent
+    scores_ddqn = dqn(env, brain_name, agent2, n_episodes=2000)
+    
+    plot_scores({'no DDQN': scores_no_ddqn, 
+                 'DDQN': scores_ddqn})
+    
+    # Show trained agents how it is acting in the environment
     apply(env, brain_name, 'checkpoint.pth')
+    
     env.close()

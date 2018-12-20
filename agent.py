@@ -8,14 +8,13 @@ import torch.optim as optim
 
 from model import QNetwork
 
-BUFFER_SIZE = int(1e5)      # replay buffer size
-BATCH_SIZE = 64             # minibatch size
+BUFFER_SIZE = int(1e6)      # replay buffer size
+BATCH_SIZE = 32             # minibatch size
 GAMMA = .99                 # discount factor
 TAU = 1e-3                  # (soft) update of target parameters
-LR = 5e-5                   # learning rate
+LR = 2.5e-4                 # learning rate
 UPDATE_LOCAL = 4            # update local network after every x steps
 UPDATE_TARGET = 4           # update target network with local network params
-DDQN = True                 # Double Deep Q-Learning
                             
 device = 'cpu'
 
@@ -23,7 +22,7 @@ class Agent():
 
     def __init__(self, state_size,
                  action_size, hidden_layers,
-                 seed=1):
+                 ddqn=True, seed=1):
         """Initialize Agent object
 
         Params
@@ -49,6 +48,9 @@ class Agent():
 
         # Initialize time step
         self.t_step = 0
+        
+        # Double Deep Q-Learning flag
+        self.ddqn = ddqn
 
     def step(self, state, action, reward, next_state, done):
 
@@ -58,7 +60,7 @@ class Agent():
         # Learn every UPDATE LOCAL time steps
         self.t_step += 1
         if self.t_step % UPDATE_LOCAL == 0:
-            # If enough samples are available in memory, get random subset and lean
+            # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > BATCH_SIZE:
                 sample = self.memory.sample()
                 if self.t_step % UPDATE_TARGET == 0:
@@ -97,7 +99,7 @@ class Agent():
         """
         states, actions, rewards, next_states, dones = sample
         
-        if not DDQN:
+        if not self.ddqn:
 
             # Get max predicted Q values (for next states) from target model
             Q_targets_next = \
@@ -144,7 +146,21 @@ class Agent():
             in zip(target_net.parameters(), local_net.parameters()):
             target_param.data.\
                 copy_(tau*local_param.data + (1.0 - tau)*target_param.data)
-
+                
+    def get_hyperparameters(self):
+        output = """
+            Replay Buffer size: {} \n
+            Batch size: {} \n
+            Discout factor: {} \n
+            Factor for soft update of target parameters: {} \n
+            Learning Rate: {} \n
+            Update local network after every {} steps \n
+            Update target network with local network parameters after every {} steps
+        """
+        print(output.format(BUFFER_SIZE, BATCH_SIZE, 
+                            GAMMA, TAU, 
+                            LR, UPDATE_LOCAL,
+                            UPDATE_TARGET))
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples in"""
