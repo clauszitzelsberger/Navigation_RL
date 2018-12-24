@@ -7,14 +7,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from model import QNetwork
-
-BUFFER_SIZE = int(1e6)      # replay buffer size
-BATCH_SIZE = 32             # minibatch size
-GAMMA = .99                 # discount factor
-TAU = 1e-3                  # (soft) update of target parameters
-LR = 2.5e-4                 # learning rate
-UPDATE_LOCAL = 4            # update local network after every x steps
-UPDATE_TARGET = 4           # update target network with local network params
                             
 device = 'cpu'
 
@@ -22,7 +14,11 @@ class Agent():
 
     def __init__(self, state_size,
                  action_size, hidden_layers,
-                 ddqn=True, seed=1):
+                 buffer_size=int(1e6), batch_size=32,
+                 gamma=.99, tau=1,
+                 lr=2.5e-4, update_local=4,
+                 update_target=10000, ddqn=False, 
+                 seed=1):
         """Initialize Agent object
 
         Params
@@ -35,23 +31,33 @@ class Agent():
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(seed)
+        
+        # Hyperparameters
+        self.buffer_size = buffer_size      # replay buffer
+        self.batch_size = batch_size        # minibatch size
+        self.gamma = gamma                  # discount factor
+        self.tau = tau                      # (soft) update of target parameters
+        self.lr = lr                        # learning rate
+        self.update_local = update_local    # update local network after every x steps
+        self.update_target = update_target  # update target network with local network weights
 
         # Q Network
         self.qnet_local = \
             QNetwork(state_size, action_size, hidden_layers, seed).to(device)
         self.qnet_target = \
             QNetwork(state_size, action_size, hidden_layers, seed).to(device)
-        self.optimizer = optim.Adam(self.qnet_local.parameters(), lr=LR)
+        self.optimizer = optim.Adam(self.qnet_local.parameters(), lr=lr)
 
         # Replay buffer
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
+        self.memory = ReplayBuffer(action_size, buffer_size, batch_size, seed)
 
         # Initialize time step
         self.t_step = 0
         
         # Double Deep Q-Learning flag
         self.ddqn = ddqn
-
+        
+        
     def step(self, state, action, reward, next_state, done):
 
         # Save experience in replay buffer
@@ -59,15 +65,15 @@ class Agent():
 
         # Learn every UPDATE LOCAL time steps
         self.t_step += 1
-        if self.t_step % UPDATE_LOCAL == 0:
+        if self.t_step % self.update_local == 0:
             # If enough samples are available in memory, get random subset and learn
-            if len(self.memory) > BATCH_SIZE:
+            if len(self.memory) > self.batch_size:
                 sample = self.memory.sample()
-                if self.t_step % UPDATE_TARGET == 0:
+                if self.t_step % self.update_target == 0:
                     do_target_update = True
                 else:
                     do_target_update = False
-                self.__learn(sample, GAMMA, do_target_update)
+                self.__learn(sample, self.gamma, do_target_update)
 
     def act(self, state, epsilon=0):
         """Returns action given a state according to local Q Network (current policy)
@@ -130,7 +136,7 @@ class Agent():
 
         # Update target network
         if do_target_update:
-            self.__target_net_update(self.qnet_local, self.qnet_target, TAU)
+            self.__target_net_update(self.qnet_local, self.qnet_target, self.tau)
 
     def __target_net_update(self, local_net, target_net, tau):
         """Soft update model parameters.
@@ -157,10 +163,10 @@ class Agent():
             Update local network after every {} steps \n
             Update target network with local network parameters after every {} steps
         """
-        print(output.format(BUFFER_SIZE, BATCH_SIZE, 
-                            GAMMA, TAU, 
-                            LR, UPDATE_LOCAL,
-                            UPDATE_TARGET))
+        print(output.format(self.buffer_size, self.batch_size, 
+                            self.gamma, self.tau, 
+                            self.lr, self.update_local,
+                            self.update_target))
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples in"""

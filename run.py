@@ -21,11 +21,13 @@ def initialize_env(unity_file):
     env_info = env.reset(train_mode=True)[brain_name]
     state_size = len(env_info.vector_observations[0])
     action_size = brain.vector_action_space_size
+    
     print('State size:', state_size)
     print('Action size:', action_size)
-
+    
     return env, brain_name, state_size, action_size
-
+    
+        
 
 
 
@@ -126,18 +128,37 @@ if __name__ == '__main__':
     env, brain_name, state_size, action_size = \
         initialize_env('Banana_Linux/Banana.x86')
         
-    # Initialize agent w/o DDQN
-    agent1 = Agent(state_size, action_size, [256, 128, 64], ddqn=False)
-    # Train agent
-    scores_no_ddqn = dqn(env, brain_name, agent1, n_episodes=2000)
+    # Initialize agents
+    hidden_layers = [256, 128, 64]
+    tau_soft = 1e-3
+    update_target_soft = 4
     
-    # Initialize agent with DDQN
-    agent2 = Agent(state_size, action_size, [256, 128, 64], ddqn=True)
-    # Train agent
-    scores_ddqn = dqn(env, brain_name, agent2, n_episodes=2000)
+    agent1 = Agent(state_size, action_size, 
+                   hidden_layers)
+    agent2 = Agent(state_size, action_size, 
+                   hidden_layers, tau=tau_soft, 
+                   update_target=update_target_soft)
+    agent3 = Agent(state_size, action_size, 
+                   hidden_layers, ddqn=True)
+    agent4 = Agent(state_size, action_size, 
+                   hidden_layers, tau=tau_soft, 
+                   update_target=update_target_soft, ddqn=True)
     
-    plot_scores({'no DDQN': scores_no_ddqn, 
-                 'DDQN': scores_ddqn})
+    # Train agent
+    n = 2000
+    
+    #scores_dqn = dqn(env, brain_name, agent1, n_episodes=n)
+    scores_dqn_soft_update = dqn(env, brain_name, agent2, n_episodes=n)
+    scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
+    scores_dqn = dqn(env, brain_name, agent1, n_episodes=n)
+    scores_ddqn = dqn(env, brain_name, agent3, n_episodes=n)
+    #scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
+    
+    
+    plot_scores({'DQN': scores_dqn,
+                 'DQN, soft update': scores_dqn_soft_update,
+                 'DDQN': scores_ddqn,
+                 'DDQN, soft update': scores_ddqn_soft_update})
     
     # Show trained agents how it is acting in the environment
     apply(env, brain_name, 'checkpoint.pth')
