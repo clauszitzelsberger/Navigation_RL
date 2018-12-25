@@ -25,6 +25,15 @@ class Agent():
         ======
             state_size (int): Dimension of states
             action_size (int): Dimension of actions
+            hidden_layers (list of ints): number of nodes in the hidden layers
+            buffer_size (int): size of replay buffer
+            batch_size (int): size of sample
+            gamma (float): discount factor
+            tau (float): (soft) update of target parameters
+            lr (float): learning rate
+            update_local (int): update local after every x steps
+            update_target (int): update target after every x steps
+            ddqn (boolean): Double Deep Q-Learning
             seed (int): random seed
         """
 
@@ -153,20 +162,21 @@ class Agent():
             target_param.data.\
                 copy_(tau*local_param.data + (1.0 - tau)*target_param.data)
                 
-    def get_hyperparameters(self):
+    def get_info(self):
         output = """
             Replay Buffer size: {} \n
             Batch size: {} \n
             Discout factor: {} \n
-            Factor for soft update of target parameters: {} \n
+            tau: {} \n
             Learning Rate: {} \n
             Update local network after every {} steps \n
-            Update target network with local network parameters after every {} steps
+            Update target network with local network parameters after every {} steps \n
+            DDQN: {}
         """
         print(output.format(self.buffer_size, self.batch_size, 
                             self.gamma, self.tau, 
                             self.lr, self.update_local,
-                            self.update_target))
+                            self.update_target, self.ddqn))
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples in"""
