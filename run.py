@@ -34,7 +34,7 @@ def initialize_env(unity_file):
 def dqn(env, brain_name, 
         agent, n_episodes=2000,
         epsilon_start=1.0, epsilon_end=.1, 
-        epsilon_decay=.995):
+        epsilon_decay=.99):
     """Deep Q-Learning.
 
     Params
@@ -147,12 +147,10 @@ if __name__ == '__main__':
     # Train agent
     n = 2000
     
-    #scores_dqn = dqn(env, brain_name, agent1, n_episodes=n)
-    scores_dqn_soft_update = dqn(env, brain_name, agent2, n_episodes=n)
-    scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
     scores_dqn = dqn(env, brain_name, agent1, n_episodes=n)
+    scores_dqn_soft_update = dqn(env, brain_name, agent2, n_episodes=n)
     scores_ddqn = dqn(env, brain_name, agent3, n_episodes=n)
-    #scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
+    scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
     
     
     plot_scores({'DQN': scores_dqn,
