@@ -39,6 +39,9 @@ def dqn(env, brain_name,
 
     Params
     ======
+        env: unity environment object
+        brain_name (string): brain name of initialized environment
+        agent: initialized agent object
         n_episodes (int): maximum number of training episodes
         epsilon_start (float): starting value of epsilon, for epsilon-greedy action selection
         epsilon_end (float): minimum value of epsilon
@@ -146,12 +149,17 @@ if __name__ == '__main__':
     
     # Train agent
     n = 2000
-    
+    print('DQN')
     scores_dqn = dqn(env, brain_name, agent1, n_episodes=n)
-    scores_dqn_soft_update = dqn(env, brain_name, agent2, n_episodes=n)
-    scores_ddqn = dqn(env, brain_name, agent3, n_episodes=n)
-    scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
     
+    print('\nDQN, soft update')
+    scores_dqn_soft_update = dqn(env, brain_name, agent2, n_episodes=n)
+    
+    print('\nDDQN')
+    scores_ddqn = dqn(env, brain_name, agent3, n_episodes=n)
+    
+    print('\nDDQN, soft update')
+    scores_ddqn_soft_update = dqn(env, brain_name, agent4, n_episodes=n)
     
     plot_scores({'DQN': scores_dqn,
                  'DQN, soft update': scores_dqn_soft_update,
